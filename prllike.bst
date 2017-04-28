@@ -1,3 +1,8 @@
+% This style is a hacked version of apalike.bst, modified to resemble the 
+% bibliography style of RevTeX. (C) 2016 Andreas K. Huettel
+% Requires \usepackage{hyperref}.
+% Original header follows.
+%
 % BibTeX `apalike' bibliography style (version 0.99a, 8-Dec-10), adapted from
 % the `alpha' style, version 0.99a; for BibTeX version 0.99a.
 %
@@ -45,6 +50,7 @@ ENTRY
     author
     booktitle
     chapter
+    doi
     edition
     editor
     howpublished
@@ -61,6 +67,7 @@ ENTRY
     series
     title
     type
+    url
     volume
     year
   }
@@ -121,7 +128,7 @@ FUNCTION {output.year.check}
 { year empty$
     { "empty year in " cite$ * warning$ }
     { write$
-      " (" year * extra.label * ")" *
+      " (" year * ")" *
       mid.sentence 'output.state :=
     }
   if$
@@ -389,8 +396,36 @@ FUNCTION {format.pages}
   if$
 }
 
+FUNCTION {bold}
+{ duplicate$ empty$
+    {pop$ "" }
+    { "{\bf " swap$ * "}" * }
+  if$
+}
+
+FUNCTION {format.weblink}
+{
+  doi empty$
+    {
+      url empty$
+      { "" }
+      {
+        "\url{" url *
+        "}" *
+      }
+      if$
+    }
+    { 
+      "\href{http://dx.doi.org/" doi *
+      "}{doi:" *
+      doi * 
+      "}" *
+    }
+  if$
+}
+
 FUNCTION {format.vol.num.pages}
-{ volume field.or.null
+{ volume field.or.null bold 
   number empty$
     'skip$
     { "(" number * ")" * *
@@ -404,7 +439,7 @@ FUNCTION {format.vol.num.pages}
     'skip$
     { duplicate$ empty$
         { pop$ format.pages }
-        { ":" * pages n.dashify * }
+        { ", " * pages n.dashify * }
       if$
     }
   if$
@@ -482,19 +517,20 @@ FUNCTION {format.incoll.inproc.crossref}
 FUNCTION {article}
 { output.bibitem
   format.authors "author" output.check
-  author format.key output                              % special for
-  output.year.check                                     % apalike
+  author format.key output
   new.block
-  format.title "title" output.check
+  format.title emphasize "title" output.check
   new.block
   crossref missing$
-    { journal emphasize "journal" output.check
-      format.vol.num.pages output
+    { journal " " *
+      format.vol.num.pages * output
+      output.year.check
     }
     { format.article.crossref output.nonnull
       format.pages output
     }
   if$
+  format.weblink output
   new.block
   note output
   fin.entry
@@ -513,7 +549,6 @@ FUNCTION {book}
       if$
     }
   if$
-  output.year.check                             % special for apalike
   new.block
   format.btitle "title" output.check
   crossref missing$
@@ -529,6 +564,7 @@ FUNCTION {book}
     }
   if$
   format.edition output
+  output.year.check                             % special for apalike
   new.block
   note output
   fin.entry
@@ -562,7 +598,6 @@ FUNCTION {inbook}
       if$
     }
   if$
-  output.year.check                             % special for apalike
   new.block
   format.btitle "title" output.check
   crossref missing$
@@ -580,6 +615,7 @@ FUNCTION {inbook}
     }
   if$
   format.edition output
+  output.year.check                             % special for apalike
   new.block
   note output
   fin.entry
@@ -616,9 +652,8 @@ FUNCTION {inproceedings}
 { output.bibitem
   format.authors "author" output.check
   author format.key output                              % special for
-  output.year.check                                     % apalike
   new.block
-  format.title "title" output.check
+  format.title emphasize "title" output.check
   new.block
   crossref missing$
     { format.in.ed.booktitle "booktitle" output.check
@@ -634,6 +669,7 @@ FUNCTION {inproceedings}
       format.pages output
     }
   if$
+  output.year.check                                     % apalike
   new.block
   note output
   fin.entry
@@ -691,13 +727,13 @@ FUNCTION {phdthesis}
 { output.bibitem
   format.authors "author" output.check
   author format.key output                              % special for
-  output.year.check                                     % apalike
   new.block
   format.btitle "title" output.check
   new.block
   "PhD thesis" format.thesis.type output.nonnull
   school "school" output.check
   address output
+  output.year.check                                     % apalike
   new.block
   note output
   fin.entry
@@ -1065,7 +1101,11 @@ REVERSE {reverse.pass}
 %                               on sort.label then year then title.  This is
 %                               for the second sorting pass.
 FUNCTION {bib.sort.order}
-{ sort.label
+{ label sortify
+  "    "
+  *
+  sort.label
+  *
   "    "
   *
   year field.or.null sortify
