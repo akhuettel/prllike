@@ -779,7 +779,7 @@ FUNCTION {unpublished}
   author format.key output                              % special for
   output.year.check                                     % apalike
   new.block
-  format.title "title" output.check
+  format.title emphasize "title" output.check
   new.block
   note "note" output.check
   fin.entry
