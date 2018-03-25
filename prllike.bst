@@ -53,6 +53,7 @@ ENTRY
     doi
     edition
     editor
+    forcedlabel
     howpublished
     institution
     journal
@@ -930,20 +931,28 @@ FUNCTION {editor.key.label}
 }
 
 FUNCTION {calc.label}
-{ type$ "book" =
-  type$ "inbook" =
-  or
-    'author.editor.key.label
-    { type$ "proceedings" =
-        'editor.key.label                       % apalike ignores organization
-        'author.key.label                       % for labeling and sorting
+{ 
+  forcedlabel empty$
+    { 
+      type$ "book" =
+      type$ "inbook" =
+      or
+        'author.editor.key.label
+        { type$ "proceedings" =
+            'editor.key.label                       % apalike ignores organization
+            'author.key.label                       % for labeling and sorting
+          if$
+        }
       if$
+      ", "                                                  % these three lines are
+      *                                                     % for apalike, which
+      year field.or.null purify$ #-1 #4 substring$          % uses all four digits
+      *
+    }
+    { 
+      forcedlabel
     }
   if$
-  ", "                                                  % these three lines are
-  *                                                     % for apalike, which
-  year field.or.null purify$ #-1 #4 substring$          % uses all four digits
-  *
   'label :=
 }
 
